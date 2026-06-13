@@ -1,8 +1,11 @@
 const TrackingTraining = (() => {
   const CONFIG = {
-    easy:   { duration: 30000, speed: 1.8, flashEvery: 3200, ballSize: 32 },
-    normal: { duration: 30000, speed: 2.8, flashEvery: 2200, ballSize: 26 },
-    hard:   { duration: 30000, speed: 4.0, flashEvery: 1500, ballSize: 20 },
+    //                                                    maxAngVel: 最大旋回速度(rad/frame)
+    //                                                    joltProb: 急転換の確率(/frame)
+    //                                                    joltMag:  急転換の強さ
+    easy:   { duration: 30000, speed: 1.8, flashEvery: 3200, ballSize: 32, maxAngVel: 0.04, joltProb: 0.002, joltMag: 0.30 },
+    normal: { duration: 30000, speed: 2.8, flashEvery: 2200, ballSize: 26, maxAngVel: 0.07, joltProb: 0.004, joltMag: 0.45 },
+    hard:   { duration: 30000, speed: 4.0, flashEvery: 1500, ballSize: 20, maxAngVel: 0.10, joltProb: 0.007, joltMag: 0.60 },
   };
 
   let state           = null;
@@ -16,8 +19,8 @@ const TrackingTraining = (() => {
       onComplete,
       hits: 0, flashes: 0,
       bx: 0, by: 0,
-      vx: (Math.random() > 0.5 ? 1 : -1) * cfg.speed,
-      vy: (Math.random() > 0.5 ? 1 : -1) * cfg.speed,
+      angle: Math.random() * Math.PI * 2,  // ランダムな初期方向
+      angularVel: 0,                        // 旋回角速度
       isFlashing: false,
       startTime: 0,
       flashTimer: null,
@@ -117,14 +120,27 @@ const TrackingTraining = (() => {
     const fw  = field.offsetWidth;
     const fh  = field.offsetHeight;
     const r   = state.cfg.ballSize / 2;
+    const { maxAngVel, joltProb, joltMag } = state.cfg;
 
-    state.bx += state.vx;
-    state.by += state.vy;
+    // なめらかなランダムステアリング
+    state.angularVel += (Math.random() - 0.5) * 0.14;
+    state.angularVel *= 0.90;  // ダンピング（自然に直進に戻る傾向）
+    state.angularVel = Math.max(-maxAngVel, Math.min(maxAngVel, state.angularVel));
 
-    if (state.bx - r <= 0)  { state.bx = r;      state.vx =  Math.abs(state.vx); }
-    if (state.bx + r >= fw) { state.bx = fw - r; state.vx = -Math.abs(state.vx); }
-    if (state.by - r <= 0)  { state.by = r;       state.vy =  Math.abs(state.vy); }
-    if (state.by + r >= fh) { state.by = fh - r;  state.vy = -Math.abs(state.vy); }
+    // 低確率で急な方向転換（Uターン・急カーブ）
+    if (Math.random() < joltProb) {
+      state.angularVel += (Math.random() - 0.5) * joltMag * 2;
+    }
+
+    state.angle += state.angularVel;
+    state.bx += Math.cos(state.angle) * state.cfg.speed;
+    state.by += Math.sin(state.angle) * state.cfg.speed;
+
+    // 壁バウンド（角度を反射、わずかにランダムオフセット追加）
+    if (state.bx - r <= 0)  { state.bx = r;      state.angle = Math.PI - state.angle + (Math.random() - 0.5) * 0.2; state.angularVel = 0; }
+    if (state.bx + r >= fw) { state.bx = fw - r;  state.angle = Math.PI - state.angle + (Math.random() - 0.5) * 0.2; state.angularVel = 0; }
+    if (state.by - r <= 0)  { state.by = r;       state.angle = -state.angle         + (Math.random() - 0.5) * 0.2; state.angularVel = 0; }
+    if (state.by + r >= fh) { state.by = fh - r;  state.angle = -state.angle         + (Math.random() - 0.5) * 0.2; state.angularVel = 0; }
 
     const ball = document.getElementById('track-ball');
     if (ball) {
