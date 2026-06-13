@@ -89,11 +89,14 @@ const FocusTraining = (() => {
     } else {
       display.innerHTML = `
         <div class="focus-target-far">
-          <div class="far-dot"></div>
-          <p class="far-label">画面中央の点を遠くに感じながら見てください</p>
+          <div class="far-circles-wrap">
+            <div class="far-circle"></div>
+            <div class="far-circle"></div>
+          </div>
+          <p class="far-label">目の力を抜いて、画面の奥を見るイメージで<br>2つの○を1つに重ねてください</p>
         </div>
       `;
-      label.textContent = '🔭 遠くを見てください';
+      label.textContent = '👁 2つの○を1つに見てください';
     }
 
     if (btn)      { btn.disabled = false; btn.style.opacity = '1'; }

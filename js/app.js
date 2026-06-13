@@ -110,15 +110,6 @@ const App = (() => {
       });
     });
 
-    // 難易度
-    document.querySelectorAll('.diff-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        state.difficulty = btn.dataset.diff;
-      });
-    });
-
     // 視力測定 設定ボタン（変更のたびに制約を再計算）
     bindSettingGroup('vt-range-group',    v => { state.vtRange    = v;         updateSettingConstraints(); });
     bindSettingGroup('vt-distance-group', v => { state.vtDistance = Number(v); updateSettingConstraints(); });
@@ -150,6 +141,24 @@ const App = (() => {
       Router.show('menu');
     });
 
+    // Enter キー → スタートボタン（メニュー画面のみ）
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        if (document.getElementById('screen-menu').classList.contains('active')) {
+          e.preventDefault();
+          document.getElementById('start-btn').click();
+        }
+      }
+      if (e.key === ' ' || e.key === 'Spacebar') {
+        const trainingActive = document.getElementById('screen-training').classList.contains('active');
+        const focusedTag = document.activeElement?.tagName;
+        if (trainingActive && currentTraining && focusedTag !== 'BUTTON' && focusedTag !== 'INPUT') {
+          e.preventDefault();
+          togglePause();
+        }
+      }
+    });
+
     // 初期表示
     updateMenuVisibility();
     updateSettingConstraints();
@@ -171,7 +180,6 @@ const App = (() => {
     const isVT = state.mode === 'vision-test';
     document.getElementById('vt-settings').classList.toggle('hidden', !isVT);
     document.getElementById('training-options').classList.toggle('hidden', isVT);
-    document.getElementById('difficulty-section').classList.toggle('hidden', isVT);
   }
 
   function startSession() {
@@ -183,7 +191,7 @@ const App = (() => {
     } else {
       state.lastConfig = {
         mode: state.trainingType,
-        difficulty: state.difficulty,
+        difficulty: 'normal',
       };
     }
     Router.show('training');

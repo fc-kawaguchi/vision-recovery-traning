@@ -83,6 +83,10 @@ const TrackingTraining = (() => {
     ball.addEventListener('click', onHit);
     ball.addEventListener('touchstart', e => { e.preventDefault(); onHit(); }, { passive: false });
 
+    // フィールド全体をクリックでもヒット判定（PC マウス操作のため）
+    const field = document.getElementById('track-field');
+    field.addEventListener('click', onHit);
+
     // フィールドサイズ確定後に開始
     requestAnimationFrame(() => {
       const field = document.getElementById('track-field');
