@@ -27,12 +27,12 @@ const App = (() => {
 
   // 範囲: どの距離+DPI の組み合わせでも有効なものが1つでもあれば OK
   function canRangeWork(range) {
-    return [50, 75, 100, 150].some(d => [72, 96, 144].some(dpi => hasValidItems(range, d, dpi)));
+    return [50, 75, 100, 150].some(d => [72, 96, 144, 200, 250, 300, 350].some(dpi => hasValidItems(range, d, dpi)));
   }
 
   // 距離: 選択中の範囲でどのDPIでも有効なものが1つでもあれば OK
   function canDistanceWork(distance) {
-    return [72, 96, 144].some(dpi => hasValidItems(state.vtRange, distance, dpi));
+    return [72, 96, 144, 200, 250, 300, 350].some(dpi => hasValidItems(state.vtRange, distance, dpi));
   }
 
   // DPI: 選択中の範囲+距離との組み合わせで有効かどうか
