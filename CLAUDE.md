@@ -47,3 +47,13 @@ python -m http.server 8080
 - 文字コード: UTF-8
 - JavaScriptはES6+を使用（`const`/`let`、アロー関数、モジュールなど）
 - コメントは日本語で記述する
+
+## GitHubリポジトリ
+
+https://github.com/fc-kawaguchi/vision-recovery-traning.git
+
+## Git運用ルール
+
+- コードを変更するたびに、必ずコミットしてGitHubへプッシュする
+- コミットメッセージは変更内容が分かる日本語で記述する
+- プッシュコマンド: `git add . && git commit -m "変更内容" && git push origin main`

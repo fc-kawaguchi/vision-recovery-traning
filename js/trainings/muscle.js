@@ -94,8 +94,10 @@ const MuscleTraining = (() => {
     if (!state) return;
     if (state.round >= state.cfg.rounds) { finish(); return; }
 
-    state.answered  = false;
-    const pick      = state.dirs[Math.floor(Math.random() * state.dirs.length)];
+    state.answered     = false;
+    state.timerElapsed = 0;
+    state.paused       = false;
+    const pick         = state.dirs[Math.floor(Math.random() * state.dirs.length)];
     state.currentDir = pick.id;
 
     const dot = document.getElementById('muscle-dot');
@@ -120,22 +122,21 @@ const MuscleTraining = (() => {
   }
 
   function startTimer() {
-    let elapsed = 0;
     const bar   = document.getElementById('muscle-bar');
     if (!bar) return;
-    bar.style.width = '100%';
+    bar.style.width = Math.max(0, 100 - (state.timerElapsed / state.cfg.showTime) * 100) + '%';
     bar.className   = 'timer-bar';
 
     if (state.timer) clearInterval(state.timer);
     state.timer = setInterval(() => {
-      if (!state) { clearInterval(state?.timer); return; }
-      elapsed += 100;
-      const pct = Math.max(0, 100 - (elapsed / state.cfg.showTime) * 100);
+      if (!state || state.paused) return;
+      state.timerElapsed += 100;
+      const pct = Math.max(0, 100 - (state.timerElapsed / state.cfg.showTime) * 100);
       bar.style.width = pct + '%';
       if (pct < 30) bar.className = 'timer-bar danger';
       else if (pct < 60) bar.className = 'timer-bar warning';
 
-      if (elapsed >= state.cfg.showTime && !state.answered) {
+      if (state.timerElapsed >= state.cfg.showTime && !state.answered) {
         answer(null, null);
       }
     }, 100);
@@ -179,10 +180,22 @@ const MuscleTraining = (() => {
     cb(score);
   }
 
+  function pause() {
+    if (!state || state.paused) return;
+    state.paused = true;
+    clearInterval(state.timer);
+  }
+
+  function resume() {
+    if (!state || !state.paused) return;
+    state.paused = false;
+    if (!state.answered) startTimer();
+  }
+
   function stop() {
     if (state?.timer) clearInterval(state.timer);
     state = null;
   }
 
-  return { start, stop };
+  return { start, pause, resume, stop };
 })();

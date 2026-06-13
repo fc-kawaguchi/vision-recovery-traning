@@ -45,52 +45,56 @@ const Result = (() => {
   function displayVisionTest(data) {
     const phaseOrder = ['right', 'left', 'both'];
     const phases     = data.phases;
+    const settings   = data.settings; // { distance, dpi, range }
 
     const scoreCard    = document.querySelector('.score-card');
     const feedbackCard = document.querySelector('.feedback-card');
 
-    // 正解率サマリー
-    const accuracyHtml = phaseOrder.map(id => {
+    // 推定視力サマリー（最高VA達成値）
+    const summaryHtml = phaseOrder.map(id => {
       const p = phases[id];
       if (!p) return '';
-      const pct = Math.round(p.correctCount / p.totalCount * 100);
+      const vaText = p.achievedVA != null ? p.achievedVA.toFixed(2) : '—';
       return `
         <div class="va-acc-item">
           <span class="va-acc-label">${p.label}</span>
-          <span class="va-acc-pct">${pct}<small>%</small></span>
-          <span class="va-acc-sub">${p.correctCount}/${p.totalCount}問</span>
+          <span class="va-acc-pct">${vaText}<small> 以上</small></span>
+          <span class="va-acc-sub">${p.correctCount}/${p.totalCount}問正解</span>
         </div>
       `;
     }).join('');
 
     scoreCard.innerHTML = `
       <h3 class="va-done-title">視力測定 完了</h3>
-      <div class="va-acc-grid">${accuracyHtml}</div>
+      <p class="va-done-cond">${settings.distance}cm ／ ${settings.dpi}dpi での測定結果</p>
+      <div class="va-acc-grid">${summaryHtml}</div>
     `;
 
-    // 視力早見表
+    // 距離別早見表：achievedVA × (他距離 / 測定距離) で比例計算
     const tableHeaders = phaseOrder
       .map(id => `<th>${phases[id]?.label || ''}</th>`)
       .join('');
 
     const tableRows = DISTANCES_CM.map(d => {
       const cells = phaseOrder.map(id => {
-        const p  = phases[id];
-        const va = p ? computeVA(p.smallestPassedRadius, d) : 0;
+        const p = phases[id];
+        if (!p || p.achievedVA == null) return '<td>—</td>';
+        const va = p.achievedVA * (d / settings.distance);
         return `<td>${va.toFixed(2)}</td>`;
       }).join('');
 
-      // 100〜150cmに推奨マークを付ける
-      const isRecommended = (d === 100 || d === 150);
-      const rowClass = isRecommended ? ' class="va-row-rec"' : '';
-      const distLabel = isRecommended ? `${d}cm <span class="va-rec-mark">PC目安</span>` : `${d}cm`;
+      const isSelected  = (d === settings.distance);
+      const rowClass    = isSelected ? ' class="va-row-rec"' : '';
+      const distLabel   = isSelected
+        ? `${d}cm <span class="va-rec-mark">測定距離</span>`
+        : `${d}cm`;
 
       return `<tr${rowClass}><td class="va-dist">${distLabel}</td>${cells}</tr>`;
     }).join('');
 
     feedbackCard.innerHTML = `
-      <h4 class="va-table-heading">推定視力の早見表</h4>
-      <p class="va-table-desc">測定中に画面から離れていた距離の行をご確認ください。</p>
+      <h4 class="va-table-heading">距離別 推定視力の早見表</h4>
+      <p class="va-table-desc">もし別の距離で測定していた場合の推定視力です。実際に離れていた距離の行を参考にしてください。</p>
       <div class="va-table-scroll">
         <table class="va-table">
           <thead><tr><th>距離</th>${tableHeaders}</tr></thead>
@@ -106,7 +110,7 @@ const Result = (() => {
           <li><span class="va-ref-val bad">0.1未満</span><span>早めに眼科を受診してください</span></li>
         </ul>
       </div>
-      <p class="va-note">※ 標準的なモニター(96dpi)を想定した参考値です。正確な視力測定は眼科を受診してください。</p>
+      <p class="va-note">※ 測定設定（${settings.distance}cm / ${settings.dpi}dpi）を基に比例計算した参考値です。正確な視力測定は眼科を受診してください。</p>
     `;
   }
 

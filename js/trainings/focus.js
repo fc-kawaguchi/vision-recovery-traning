@@ -68,8 +68,10 @@ const FocusTraining = (() => {
     if (!state) return;
     if (state.round >= state.cfg.rounds) { finish(); return; }
 
-    state.waiting = true;
-    state.phase   = state.round % 2 === 0 ? 'near' : 'far';
+    state.waiting      = true;
+    state.timerElapsed = 0;
+    state.paused       = false;
+    state.phase        = state.round % 2 === 0 ? 'near' : 'far';
 
     const display  = document.getElementById('focus-display');
     const label    = document.getElementById('focus-phase-label');
@@ -101,22 +103,22 @@ const FocusTraining = (() => {
   }
 
   function startTimer() {
-    let elapsed = 0;
     const bar   = document.getElementById('focus-bar');
     if (!bar) return;
-    bar.style.width = '100%';
+    bar.style.width = Math.max(0, 100 - (state.timerElapsed / state.cfg.interval) * 100) + '%';
     bar.className   = 'timer-bar';
 
     if (state.intervalTimer) clearInterval(state.intervalTimer);
     state.intervalTimer = setInterval(() => {
-      if (!state) { clearInterval(state?.intervalTimer); return; }
-      elapsed += 100;
+      if (!state || state.paused) return;
+      state.timerElapsed += 100;
+      const elapsed = state.timerElapsed;
       const pct = Math.max(0, 100 - (elapsed / state.cfg.interval) * 100);
       bar.style.width = pct + '%';
       if (pct < 30) bar.className = 'timer-bar danger';
       else if (pct < 60) bar.className = 'timer-bar warning';
 
-      if (elapsed >= state.cfg.interval && state.waiting) {
+      if (elapsed >= state.cfg.interval && state.waiting && !state.paused) {
         state.waiting = false;
         clearInterval(state.intervalTimer);
         const fb  = document.getElementById('focus-feedback');
@@ -160,10 +162,22 @@ const FocusTraining = (() => {
     cb(score);
   }
 
+  function pause() {
+    if (!state || state.paused) return;
+    state.paused = true;
+    clearInterval(state.intervalTimer);
+  }
+
+  function resume() {
+    if (!state || !state.paused) return;
+    state.paused = false;
+    if (state.waiting) startTimer();
+  }
+
   function stop() {
     if (state?.intervalTimer) clearInterval(state.intervalTimer);
     state = null;
   }
 
-  return { start, stop };
+  return { start, pause, resume, stop };
 })();

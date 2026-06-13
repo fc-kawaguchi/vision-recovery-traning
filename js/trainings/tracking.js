@@ -187,6 +187,27 @@ const TrackingTraining = (() => {
     cb(score);
   }
 
+  function pause() {
+    if (!state || state.paused) return;
+    state.paused    = true;
+    state.pauseTs   = Date.now();
+    cancelAnimationFrame(animFrame);
+    clearTimeout(state.flashTimer);
+    clearTimeout(state.endTimer);
+  }
+
+  function resume() {
+    if (!state || !state.paused) return;
+    const pausedMs   = Date.now() - state.pauseTs;
+    state.startTime += pausedMs; // 開始時刻を後ろにずらして残り時間を維持
+    state.paused     = false;
+    loop();
+    scheduleFlash();
+    const remaining = state.cfg.duration - (Date.now() - state.startTime);
+    if (remaining > 0) state.endTimer = setTimeout(finish, remaining);
+    else finish();
+  }
+
   function stop() {
     cancelAnimationFrame(animFrame);
     if (state) {
@@ -196,5 +217,5 @@ const TrackingTraining = (() => {
     state = null;
   }
 
-  return { start, stop };
+  return { start, pause, resume, stop };
 })();
