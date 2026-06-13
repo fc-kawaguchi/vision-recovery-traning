@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>視力回復トレーニング</title>
+  <link rel="stylesheet" href="css/reset.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/animations.css">
+</head>
+<body>
+
+  <!-- ===== メニュー画面 ===== -->
+  <section id="screen-menu" class="screen active">
+    <div class="container">
+      <header class="app-header">
+        <h1 class="app-title">視力回復トレーニング</h1>
+        <p class="app-subtitle">目のトレーニングで視力アップを目指そう</p>
+      </header>
+
+      <div class="card">
+        <h2 class="card-title">メニューを選択</h2>
+        <div class="mode-grid">
+          <button class="mode-btn active" data-mode="vision-test">
+            <span class="mode-icon">&#128269;</span>
+            <span class="mode-name">視力測定</span>
+            <span class="mode-desc">現在の視力を確認する</span>
+          </button>
+          <button class="mode-btn" data-mode="training">
+            <span class="mode-icon">&#128170;</span>
+            <span class="mode-name">トレーニング</span>
+            <span class="mode-desc">目の筋肉を鍛える</span>
+          </button>
+        </div>
+      </div>
+
+      <div id="training-options" class="card hidden">
+        <h2 class="card-title">トレーニング種類</h2>
+        <div class="training-type-list">
+          <button class="training-type-btn active" data-type="focus">
+            <span class="training-type-icon">&#127919;</span>
+            <div class="training-type-text">
+              <span class="training-type-name">ピント調整</span>
+              <span class="training-type-desc">近くと遠くを交互に見る</span>
+            </div>
+          </button>
+          <button class="training-type-btn" data-type="muscle">
+            <span class="training-type-icon">&#8597;</span>
+            <div class="training-type-text">
+              <span class="training-type-name">眼筋トレーニング</span>
+              <span class="training-type-desc">眼球を上下左右に動かす</span>
+            </div>
+          </button>
+          <button class="training-type-btn" data-type="tracking">
+            <span class="training-type-icon">&#9679;</span>
+            <div class="training-type-text">
+              <span class="training-type-name">トラッキング</span>
+              <span class="training-type-desc">動く物体を目で追う</span>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2 class="card-title">難易度</h2>
+        <div class="difficulty-grid">
+          <button class="diff-btn" data-diff="easy">かんたん</button>
+          <button class="diff-btn active" data-diff="normal">ふつう</button>
+          <button class="diff-btn" data-diff="hard">むずかしい</button>
+        </div>
+      </div>
+
+      <button id="start-btn" class="btn btn-primary btn-large">スタート</button>
+    </div>
+  </section>
+
+  <!-- ===== トレーニング画面 ===== -->
+  <section id="screen-training" class="screen">
+    <div class="container">
+      <div class="training-header">
+        <button id="training-back-btn" class="btn-back">&#8592; 戻る</button>
+        <h2 id="training-title" class="training-title"></h2>
+        <span id="training-progress" class="badge"></span>
+      </div>
+      <div id="training-area" class="training-area">
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 結果画面 ===== -->
+  <section id="screen-result" class="screen">
+    <div class="container">
+      <h2 class="result-title">結果</h2>
+
+      <div class="score-card">
+        <div class="score-display">
+          <span id="result-score" class="score-number">0</span>
+          <span class="score-unit">点</span>
+        </div>
+        <div id="result-grade" class="result-grade"></div>
+      </div>
+
+      <div class="feedback-card">
+        <p id="result-feedback" class="result-feedback"></p>
+        <p id="result-advice" class="result-advice"></p>
+      </div>
+
+      <div class="result-actions">
+        <button id="retry-btn" class="btn btn-primary">リトライ</button>
+        <button id="menu-btn" class="btn btn-secondary">メニューへ戻る</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="js/router.js"></script>
+  <script src="js/result.js"></script>
+  <script src="js/trainings/vision-test.js"></script>
+  <script src="js/trainings/focus.js"></script>
+  <script src="js/trainings/muscle.js"></script>
+  <script src="js/trainings/tracking.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
