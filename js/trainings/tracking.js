@@ -5,8 +5,9 @@ const TrackingTraining = (() => {
     hard:   { duration: 30000, speed: 4.0, flashEvery: 1500, ballSize: 20 },
   };
 
-  let state     = null;
-  let animFrame = null;
+  let state           = null;
+  let animFrame       = null;
+  let keyboardHandler = null;
 
   function start(container, difficulty, onComplete) {
     const cfg = CONFIG[difficulty];
@@ -41,7 +42,8 @@ const TrackingTraining = (() => {
     const style = document.createElement('style');
     style.textContent = `
       .track-field {
-        position: relative; width: 100%; padding-top: 62%;
+        position: relative; width: 100%;
+        height: min(62vw, calc(100vh - 300px)); min-height: 200px;
         background: #0f172a; border-radius: 12px; overflow: hidden;
         cursor: crosshair; touch-action: none; margin: 0.5rem 0;
       }
@@ -86,6 +88,13 @@ const TrackingTraining = (() => {
     // フィールド全体をクリックでもヒット判定（PC マウス操作のため）
     const field = document.getElementById('track-field');
     field.addEventListener('click', onHit);
+
+    // Enter キーでもヒット判定
+    if (keyboardHandler) document.removeEventListener('keydown', keyboardHandler);
+    keyboardHandler = (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); onHit(); }
+    };
+    document.addEventListener('keydown', keyboardHandler);
 
     // フィールドサイズ確定後に開始
     requestAnimationFrame(() => {
@@ -179,6 +188,7 @@ const TrackingTraining = (() => {
 
   function finish() {
     if (!state) return;
+    if (keyboardHandler) { document.removeEventListener('keydown', keyboardHandler); keyboardHandler = null; }
     cancelAnimationFrame(animFrame);
     clearTimeout(state.flashTimer);
     clearTimeout(state.endTimer);
@@ -213,6 +223,7 @@ const TrackingTraining = (() => {
   }
 
   function stop() {
+    if (keyboardHandler) { document.removeEventListener('keydown', keyboardHandler); keyboardHandler = null; }
     cancelAnimationFrame(animFrame);
     if (state) {
       clearTimeout(state.flashTimer);

@@ -5,7 +5,8 @@ const FocusTraining = (() => {
     hard:   { rounds: 16, interval: 1800 },
   };
 
-  let state = null;
+  let state          = null;
+  let keyboardHandler = null;
 
   function start(container, difficulty, onComplete) {
     const cfg = CONFIG[difficulty];
@@ -60,6 +61,15 @@ const FocusTraining = (() => {
     container.appendChild(style);
 
     document.getElementById('focus-btn').addEventListener('click', handleButton);
+
+    if (keyboardHandler) document.removeEventListener('keydown', keyboardHandler);
+    keyboardHandler = (e) => {
+      if (e.key !== 'Enter') return;
+      const btn = document.getElementById('focus-btn');
+      if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
+    };
+    document.addEventListener('keydown', keyboardHandler);
+
     updateProgress();
     nextPhase();
   }
@@ -159,6 +169,7 @@ const FocusTraining = (() => {
   }
 
   function finish() {
+    if (keyboardHandler) { document.removeEventListener('keydown', keyboardHandler); keyboardHandler = null; }
     const score = Math.round((state.scored / state.cfg.rounds) * 100);
     const cb    = state.onComplete;
     state = null;
@@ -178,6 +189,7 @@ const FocusTraining = (() => {
   }
 
   function stop() {
+    if (keyboardHandler) { document.removeEventListener('keydown', keyboardHandler); keyboardHandler = null; }
     if (state?.intervalTimer) clearInterval(state.intervalTimer);
     state = null;
   }

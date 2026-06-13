@@ -7,14 +7,20 @@ const MuscleTraining = (() => {
     { id: 'left',  label: '←', x:  8, y: 50 },
   ];
 
-  const CONFIG = { rounds: 12, showTime: 2000 };
+  const CONFIGS = {
+    easy:   { rounds: 8,  showTime: 2800 },
+    normal: { rounds: 12, showTime: 2000 },
+    hard:   { rounds: 16, showTime: 1400 },
+  };
 
-  let state = null;
+  let state           = null;
+  let keyboardHandler = null;
 
-  function start(container, _difficulty, onComplete) {
+  function start(container, difficulty, onComplete) {
+    const cfg = CONFIGS[difficulty] || CONFIGS.normal;
     state = {
       round: 0, correct: 0,
-      cfg: CONFIG,
+      cfg,
       currentDir: null,
       answered: false,
       timer: null,
@@ -47,7 +53,8 @@ const MuscleTraining = (() => {
     const style = document.createElement('style');
     style.textContent = `
       .muscle-field {
-        position: relative; width: 100%; padding-top: 55%;
+        position: relative; width: 100%;
+        height: min(55vw, calc(100vh - 340px)); min-height: 180px;
         background: #f1f5f9; border: 2px solid #e2e8f0; border-radius: 12px;
         overflow: hidden; margin: 0.75rem 0;
       }
@@ -70,6 +77,17 @@ const MuscleTraining = (() => {
     container.querySelectorAll('.direction-btn').forEach(btn => {
       btn.addEventListener('click', () => answer(btn.dataset.dir, btn));
     });
+
+    if (keyboardHandler) document.removeEventListener('keydown', keyboardHandler);
+    keyboardHandler = (e) => {
+      const dirMap = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+      const dir = dirMap[e.key];
+      if (!dir) return;
+      e.preventDefault();
+      const btn = document.querySelector(`#muscle-cross .direction-btn[data-dir="${dir}"]`);
+      if (btn && !btn.disabled) btn.click();
+    };
+    document.addEventListener('keydown', keyboardHandler);
 
     updateProgress();
     nextRound();
@@ -158,6 +176,7 @@ const MuscleTraining = (() => {
   }
 
   function finish() {
+    if (keyboardHandler) { document.removeEventListener('keydown', keyboardHandler); keyboardHandler = null; }
     const score = Math.round((state.correct / state.cfg.rounds) * 100);
     const cb    = state.onComplete;
     state = null;
@@ -177,6 +196,7 @@ const MuscleTraining = (() => {
   }
 
   function stop() {
+    if (keyboardHandler) { document.removeEventListener('keydown', keyboardHandler); keyboardHandler = null; }
     if (state?.timer) clearInterval(state.timer);
     state = null;
   }

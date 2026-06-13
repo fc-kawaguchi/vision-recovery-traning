@@ -147,8 +147,8 @@ const Result = (() => {
       <p id="result-advice"   class="result-advice"></p>
     `;
 
-    document.getElementById('result-grade').textContent = gradeInfo.label;
-    document.getElementById('result-grade').style.color  = gradeInfo.color;
+    document.getElementById('result-grade').innerHTML  = gradeInfo.label;
+    document.getElementById('result-grade').style.color = gradeInfo.color;
     document.getElementById('result-feedback').textContent = feedback.comment;
     document.getElementById('result-advice').textContent   = feedback.advice;
 
