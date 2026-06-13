@@ -37,7 +37,14 @@
 
       <!-- 視力測定の設定（視力測定モード時のみ表示） -->
       <div id="vt-settings" class="card">
-        <h2 class="card-title">画面との距離</h2>
+        <h2 class="card-title">① 測定範囲</h2>
+        <div class="settings-grid" id="vt-range-group">
+          <button class="setting-btn active" data-value="low">0.1〜1.0</button>
+          <button class="setting-btn" data-value="medium">0.5〜1.5</button>
+          <button class="setting-btn" data-value="high">1.0〜2.0</button>
+        </div>
+
+        <h2 class="card-title" style="margin-top:1.25rem;">② 画面との距離</h2>
         <div class="settings-grid" id="vt-distance-group">
           <button class="setting-btn" data-value="50">50cm</button>
           <button class="setting-btn" data-value="75">75cm</button>
@@ -45,18 +52,11 @@
           <button class="setting-btn" data-value="150">150cm</button>
         </div>
 
-        <h2 class="card-title" style="margin-top:1.25rem;">モニター（DPI）</h2>
+        <h2 class="card-title" style="margin-top:1.25rem;">③ モニター（DPI）</h2>
         <div class="settings-grid" id="vt-dpi-group">
           <button class="setting-btn" data-value="72">72dpi</button>
           <button class="setting-btn active" data-value="96">96dpi</button>
           <button class="setting-btn" data-value="144">144dpi</button>
-        </div>
-
-        <h2 class="card-title" style="margin-top:1.25rem;">測定範囲</h2>
-        <div class="settings-grid" id="vt-range-group">
-          <button class="setting-btn active" data-value="low">0.1〜1.0</button>
-          <button class="setting-btn" data-value="medium">0.5〜1.5</button>
-          <button class="setting-btn" data-value="high">1.0〜2.0</button>
         </div>
       </div>
 

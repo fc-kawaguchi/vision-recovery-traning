@@ -15,9 +15,10 @@ const VisionTest = (() => {
     high:   [1.0, 1.2, 1.5, 1.8, 2.0],
   };
 
-  const TIME_LIMIT = 6000; // ms per round
-  const MIN_RADIUS = 8;
-  const MAX_RADIUS = 150;
+  const TIME_LIMIT   = 6000; // ms per round
+  const MIN_RADIUS   = 8;
+  const MAX_RADIUS   = 150;
+  const ROUNDS_EACH  = 10;  // 1フェーズあたりの問題数
 
   // VA × 距離 × DPI からリング半径(px)を計算
   function computeRadius(va, distanceCm, dpi) {
@@ -33,6 +34,16 @@ const VisionTest = (() => {
       .map(va => ({ va, radius: Math.round(computeRadius(va, distance, dpi)) }))
       .filter(item => item.radius >= MIN_RADIUS && item.radius <= MAX_RADIUS)
       .sort((a, b) => b.radius - a.radius); // 大きい（低VA）→小さい（高VA）
+  }
+
+  // items を count 問になるよう調整（不足時は先頭からループ）
+  function selectTestItems(items, count) {
+    if (items.length === 0) return [];
+    const result = [];
+    for (let i = 0; i < count; i++) {
+      result.push(items[i % items.length]);
+    }
+    return result;
   }
 
   function drawLandoltC(canvas, radius, direction) {
@@ -54,10 +65,11 @@ const VisionTest = (() => {
     ctx.stroke();
   }
 
-  let state = null;
+  let state           = null;
+  let keyboardHandler = null;
 
   function start(container, settings, onComplete) {
-    const testItems = buildTestItems(settings);
+    const testItems = selectTestItems(buildTestItems(settings), ROUNDS_EACH);
 
     state = {
       settings,
@@ -188,6 +200,7 @@ const VisionTest = (() => {
         <div class="cross-empty"></div>
       </div>
       <p id="vt-feedback" class="vt-feedback"></p>
+      <p class="vt-keyboard-hint">PC: ↑↓←→ キーでも回答できます</p>
     `;
 
     injectVTStyles(state.container);
@@ -195,6 +208,18 @@ const VisionTest = (() => {
     state.container.querySelectorAll('.direction-btn').forEach(btn => {
       btn.addEventListener('click', () => answer(btn.dataset.dir, btn));
     });
+
+    // キーボード対応
+    if (keyboardHandler) document.removeEventListener('keydown', keyboardHandler);
+    keyboardHandler = (e) => {
+      const dirMap = { ArrowUp: 'up', ArrowDown: 'down', ArrowLeft: 'left', ArrowRight: 'right' };
+      const dir = dirMap[e.key];
+      if (!dir) return;
+      e.preventDefault();
+      const btn = state?.container.querySelector(`.direction-btn[data-dir="${dir}"]`);
+      if (btn && !btn.disabled) btn.click();
+    };
+    document.addEventListener('keydown', keyboardHandler);
 
     updatePhaseProgress();
     nextRound();
@@ -270,6 +295,10 @@ const VisionTest = (() => {
 
   function finishPhase() {
     if (!state) return;
+    if (keyboardHandler) {
+      document.removeEventListener('keydown', keyboardHandler);
+      keyboardHandler = null;
+    }
     const phaseId = PHASES[state.phaseIdx].id;
 
     // 正解した中で最も高いVA（最小リング = 最高VA）
@@ -321,6 +350,10 @@ const VisionTest = (() => {
   }
 
   function stop() {
+    if (keyboardHandler) {
+      document.removeEventListener('keydown', keyboardHandler);
+      keyboardHandler = null;
+    }
     if (state?.timer) clearInterval(state.timer);
     state = null;
   }

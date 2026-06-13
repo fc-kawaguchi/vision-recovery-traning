@@ -9,6 +9,70 @@ const App = (() => {
     lastConfig: null,
   };
 
+  // 視力レベル定数（vision-test.js と同期）
+  const VA_LEVELS_CONST = {
+    low:    [0.1, 0.15, 0.2, 0.25, 0.3, 0.4, 0.5, 0.7, 1.0],
+    medium: [0.5, 0.6, 0.7, 0.8, 1.0, 1.2, 1.5],
+    high:   [1.0, 1.2, 1.5, 1.8, 2.0],
+  };
+
+  function hasValidItems(range, distance, dpi) {
+    const pxPerCm = dpi / 2.54;
+    return VA_LEVELS_CONST[range].some(va => {
+      const gapCm = distance / (va * 3438);
+      const radius = (gapCm * pxPerCm) / 0.55;
+      return radius >= 8 && radius <= 150;
+    });
+  }
+
+  // 範囲: どの距離+DPI の組み合わせでも有効なものが1つでもあれば OK
+  function canRangeWork(range) {
+    return [50, 75, 100, 150].some(d => [72, 96, 144].some(dpi => hasValidItems(range, d, dpi)));
+  }
+
+  // 距離: 選択中の範囲でどのDPIでも有効なものが1つでもあれば OK
+  function canDistanceWork(distance) {
+    return [72, 96, 144].some(dpi => hasValidItems(state.vtRange, distance, dpi));
+  }
+
+  // DPI: 選択中の範囲+距離との組み合わせで有効かどうか
+  function canDpiWork(dpi) {
+    return hasValidItems(state.vtRange, state.vtDistance, dpi);
+  }
+
+  function updateSettingConstraints() {
+    // ① 測定範囲
+    document.querySelectorAll('#vt-range-group .setting-btn').forEach(btn => {
+      btn.disabled = !canRangeWork(btn.dataset.value);
+    });
+
+    // ② 距離（範囲変更後に再評価）
+    document.querySelectorAll('#vt-distance-group .setting-btn').forEach(btn => {
+      btn.disabled = !canDistanceWork(Number(btn.dataset.value));
+    });
+    fixDisabledSelection('vt-distance-group', v => { state.vtDistance = Number(v); });
+
+    // ③ DPI（距離修正後に再評価）
+    document.querySelectorAll('#vt-dpi-group .setting-btn').forEach(btn => {
+      btn.disabled = !canDpiWork(Number(btn.dataset.value));
+    });
+    fixDisabledSelection('vt-dpi-group', v => { state.vtDpi = Number(v); });
+  }
+
+  function fixDisabledSelection(groupId, updateState) {
+    const group  = document.getElementById(groupId);
+    if (!group) return;
+    const active = group.querySelector('.setting-btn.active');
+    if (active && active.disabled) {
+      active.classList.remove('active');
+      const firstValid = group.querySelector('.setting-btn:not(:disabled)');
+      if (firstValid) {
+        firstValid.classList.add('active');
+        updateState(firstValid.dataset.value);
+      }
+    }
+  }
+
   const trainings = {
     'vision-test': VisionTest,
     'focus':       FocusTraining,
@@ -55,10 +119,10 @@ const App = (() => {
       });
     });
 
-    // 視力測定 設定ボタン
-    bindSettingGroup('vt-distance-group', v => { state.vtDistance = Number(v); });
-    bindSettingGroup('vt-dpi-group',      v => { state.vtDpi      = Number(v); });
-    bindSettingGroup('vt-range-group',    v => { state.vtRange    = v; });
+    // 視力測定 設定ボタン（変更のたびに制約を再計算）
+    bindSettingGroup('vt-range-group',    v => { state.vtRange    = v;         updateSettingConstraints(); });
+    bindSettingGroup('vt-distance-group', v => { state.vtDistance = Number(v); updateSettingConstraints(); });
+    bindSettingGroup('vt-dpi-group',      v => { state.vtDpi      = Number(v); updateSettingConstraints(); });
 
     // スタート
     document.getElementById('start-btn').addEventListener('click', startSession);
@@ -88,6 +152,7 @@ const App = (() => {
 
     // 初期表示
     updateMenuVisibility();
+    updateSettingConstraints();
   }
 
   function bindSettingGroup(groupId, onSelect) {

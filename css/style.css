@@ -334,6 +334,22 @@ body {
   color: var(--primary);
 }
 
+.setting-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  color: var(--text-light);
+  background: var(--bg);
+  border-color: var(--border);
+  pointer-events: none;
+}
+
+.vt-keyboard-hint {
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-light);
+  margin: 0.25rem 0 0;
+}
+
 /* ===== 十字方向ボタン ===== */
 .direction-cross {
   display: grid;
